@@ -4,6 +4,7 @@
  *
  * Copyright (C) 2002, 2003, 2004 by Martin Pool <mbp@samba.org>
  * Copyright 2007 Google Inc.
+ * Copyright 2013 Andrew Savchenko <bircoph@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -333,39 +334,26 @@ int dcc_get_subdir(const char *name,
     return dcc_mkdir(*dir_ret);
 }
 
-int dcc_get_lock_dir(char **dir_ret)
-{
-    static char *cached;
-    int ret;
-
-    if (cached) {
-        *dir_ret = cached;
-        return 0;
-    } else {
-        ret = dcc_get_subdir("lock", dir_ret);
-        if (ret == 0)
-            cached = *dir_ret;
-        return ret;
-    }
+#define DCC_GET_DIR(NAME) \
+int dcc_get_## NAME ##_dir(char **dir_ret) \
+{ \
+    static char *cached; \
+    int ret; \
+\
+    if (cached) { \
+        *dir_ret = cached; \
+        return 0; \
+    } else { \
+        ret = dcc_get_subdir(#NAME, dir_ret); \
+        if (ret == 0) \
+            cached = *dir_ret; \
+        return ret; \
+    } \
 }
 
-int dcc_get_state_dir(char **dir_ret)
-{
-    static char *cached;
-    int ret;
-
-    if (cached) {
-        *dir_ret = cached;
-        return 0;
-    } else {
-        ret = dcc_get_subdir("state", dir_ret);
-        if (ret == 0)
-            cached = *dir_ret;
-        return ret;
-    }
-}
-
-
+DCC_GET_DIR(cache)
+DCC_GET_DIR(lock)
+DCC_GET_DIR(state)
 
 /**
  * Create a file inside the temporary directory and register it for

@@ -227,7 +227,7 @@ distnews = $(PACKAGE_TARNAME)-$(VERSION).NEWS
 rpm_glob_pattern = "$(PACKAGE)"*[-_.]"$(VERSION)"[-_.]*.deb
 deb_glob_pattern = "$(PACKAGE)"*[-_.]"$(VERSION)"[-_.]*.rpm
 
-common_obj = src/arg.o src/argutil.o					\
+common_obj = src/arg.o src/arg_native.o src/argutil.o			\
 	src/cleanup.o src/compress.o					\
 	src/trace.o src/util.o src/io.o src/exec.o			\
 	src/rpc.o src/tempfile.o src/bulk.o src/help.o src/filename.o	\
@@ -309,7 +309,7 @@ h_getline_obj = src/h_getline.o $(common_obj)
 
 # All source files, for the purposes of building the distribution
 SRC =	src/stats.c							\
-	src/access.c src/arg.c src/argutil.c				\
+	src/access.c src/arg.c src/arg_native.c src/argutil.c		\
 	src/auth_common.c src/auth_distcc.c src/auth_distccd.c		\
 	src/backoff.c src/bulk.c					\
 	src/cleanup.c							\

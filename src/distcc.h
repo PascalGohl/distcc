@@ -4,6 +4,7 @@
  *
  * Copyright (C) 2002, 2003, 2004 by Martin Pool
  * Copyright 2007 Google Inc.
+ * Copyright 2013 Andrew Savchenko <bircoph@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -256,6 +257,14 @@ int dcc_scan_args(char *argv[], /*@out@*/ /*@relnull@*/ char **orig_o,
                   char **orig_i, char ***ret_newargv);
 int dcc_expand_preprocessor_options(char ***argv_ptr);
 
+/* arg_native.c */
+/* Type of "native" param expansion */
+#define DCC_ARG_MTUNE (1 << 0)
+#define DCC_ARG_MCPU  (1 << 1)
+#define DCC_ARG_MARCH (1 << 2)
+int dcc_expand_native(char ***argv, const int type,
+    int *input_idx, int *output_idx);
+
 /* argutil.c */
 unsigned int dcc_argv_len(char **a);
 int dcc_argv_search(char **a, const char *);
@@ -272,6 +281,7 @@ int dcc_mk_tmpdir(const char *path);
 int dcc_mkdir(const char *path);
 int dcc_get_subdir(const char *name, char **path_ret) WARN_UNUSED;
 
+int dcc_get_cache_dir(char **path_ret) WARN_UNUSED;
 int dcc_get_lock_dir(char **path_ret) WARN_UNUSED;
 int dcc_get_state_dir(char **path_ret) WARN_UNUSED;
 int dcc_get_top_dir(char **path_ret) WARN_UNUSED;

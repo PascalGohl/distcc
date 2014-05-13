@@ -4,6 +4,7 @@
  *
  * Copyright (C) 2002, 2003, 2004 by Martin Pool <mbp@samba.org>
  * Copyright 2007 Google Inc.
+ * Copyright 2013 Andrew Savchenko <bircoph@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -134,6 +135,8 @@ int dcc_scan_args(char *argv[], char **input_file, char **output_file,
     int i;
     char *a;
     int ret;
+    int arg_native = 0;
+    int input_idx, output_idx; // indices of input and output arguments
 
      /* allow for -o foo.o */
     if ((ret = dcc_copy_argv(argv, ret_newargv, 2)) != 0)
@@ -182,13 +185,11 @@ int dcc_scan_args(char *argv[], char **input_file, char **output_file,
                 rs_trace("%s implies -E (maybe) and must be local", a);
                 return EXIT_DISTCC_FAILED;
             } else if (!strcmp(a, "-march=native")) {
-                rs_trace("-march=native generates code for local machine; "
-                         "must be local");
-                return EXIT_DISTCC_FAILED;
+                arg_native |= DCC_ARG_MARCH;
             } else if (!strcmp(a, "-mtune=native")) {
-                rs_trace("-mtune=native optimizes for local machine; "
-                         "must be local");
-                return EXIT_DISTCC_FAILED;
+                arg_native |= DCC_ARG_MTUNE;
+            } else if (!strcmp(a, "-mcpu=native")) {
+                arg_native |= DCC_ARG_MCPU;
             } else if (str_startswith("-Wa,", a)) {
                 /* Look for assembler options that would produce output
                  * files and must be local.
@@ -236,6 +237,7 @@ int dcc_scan_args(char *argv[], char **input_file, char **output_file,
                     return EXIT_DISTCC_FAILED;
                 }
                 *input_file = a;
+                input_idx = i;
             } else if (str_endswith(".o", a)) {
               GOT_OUTPUT:
                 rs_trace("found object/output file \"%s\"", a);
@@ -244,6 +246,7 @@ int dcc_scan_args(char *argv[], char **input_file, char **output_file,
                     return EXIT_DISTCC_FAILED;
                 }
                 *output_file = a;
+                output_idx = i;
             }
         }
     }
@@ -264,6 +267,14 @@ int dcc_scan_args(char *argv[], char **input_file, char **output_file,
 
     if (dcc_source_needs_local(*input_file))
         return EXIT_DISTCC_FAILED;
+
+    /* Expand -m$arg=native using local compiler */
+    if (arg_native && (ret = dcc_expand_native(ret_newargv, arg_native,
+        &input_idx, &output_idx)))
+        return ret;
+    // correct input filename index
+    argv = *ret_newargv;
+    *input_file = argv[input_idx];
 
     if (!*output_file) {
         /* This is a commandline like "gcc -c hello.c".  They want
@@ -293,6 +304,9 @@ int dcc_scan_args(char *argv[], char **input_file, char **output_file,
         dcc_argv_append(argv, strdup("-o"));
         dcc_argv_append(argv, ofile);
         *output_file = ofile;
+    } else {
+        // correct output filename index
+        *output_file = argv[output_idx];
     }
 
     dcc_note_compiled(*input_file, *output_file);
