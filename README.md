@@ -10,3 +10,10 @@ install
     ./configure
     make -j8
     sudo make install
+
+run
+======
+to debug: 
+    distccd --daemon --allow 10.10.10.0/24 d --verbose --no-detach --log-stderr -j8
+deamon:
+    distccd --daemon --allow 10.10.10.0/24 d -j8
